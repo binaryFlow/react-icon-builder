@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Icon Builder</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f0f11;
+        color: #e4e4e7;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr;
+        gap: 0;
+      }
+
+      header {
+        grid-column: 1 / -1;
+        padding: 20px 28px;
+        border-bottom: 1px solid #27272a;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      header h1 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fafafa;
+      }
+      header p {
+        font-size: 13px;
+        color: #71717a;
+      }
+
+      .panel {
+        padding: 24px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+      }
+
+      .panel-left {
+        border-right: 1px solid #27272a;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: #a1a1aa;
+        margin-bottom: 6px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 8px;
+        padding: 9px 12px;
+        color: #fafafa;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      input[type="text"]:focus {
+        border-color: #6366f1;
+      }
+
+      textarea {
+        width: 100%;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 8px;
+        padding: 12px;
+        color: #fafafa;
+        font-size: 12px;
+        font-family: "SF Mono", "Fira Code", monospace;
+        resize: vertical;
+        min-height: 180px;
+        outline: none;
+        line-height: 1.6;
+        transition: border-color 0.15s;
+      }
+
+      textarea:focus {
+        border-color: #6366f1;
+      }
+
+      .row {
+        display: flex;
+        gap: 12px;
+      }
+      .row > * {
+        flex: 1;
+      }
+
+      /* Analysis badge */
+      .analysis {
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .verdict {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .verdict.yes {
+        background: #052e16;
+        border: 1px solid #166534;
+      }
+      .verdict.no {
+        background: #1c0a02;
+        border: 1px solid #7c2d12;
+      }
+      .verdict.idle {
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        color: #52525b;
+      }
+
+      .verdict-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .verdict-title {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .verdict-body {
+        color: #a1a1aa;
+        font-size: 12px;
+      }
+
+      .colors-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .color-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #27272a;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-family: monospace;
+      }
+
+      .color-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+      }
+
+      .color-chip.is-neutral .color-swatch {
+        border: 1px solid #52525b;
+      }
+
+      /* Preview */
+      .preview-box {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        padding: 20px;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 10px;
+        flex-wrap: wrap;
+      }
+
+      .preview-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #71717a;
+      }
+
+      .preview-slot .icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+      }
+
+      .preview-slot .icon-wrap svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Output code */
+      .code-block {
+        position: relative;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .code-block pre {
+        padding: 16px;
+        font-size: 11.5px;
+        font-family: "SF Mono", "Fira Code", monospace;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+        color: #e4e4e7;
+      }
+
+      .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #27272a;
+        border: 1px solid #3f3f46;
+        border-radius: 6px;
+        color: #a1a1aa;
+        font-size: 11px;
+        padding: 4px 10px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+
+      .copy-btn:hover {
+        background: #3f3f46;
+        color: #fafafa;
+      }
+      .copy-btn.copied {
+        background: #166534;
+        border-color: #166534;
+        color: #bbf7d0;
+      }
+
+      .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #71717a;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .empty-state {
+        color: #52525b;
+        font-size: 13px;
+        text-align: center;
+        padding: 32px 0;
+      }
+
+      /* Save button */
+      .save-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .save-btn {
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 6px;
+        color: #a1a1aa;
+        font-size: 12px;
+        padding: 7px 14px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+      }
+      .save-btn:hover {
+        background: #3f3f46;
+        color: #fafafa;
+      }
+      .save-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .save-btn.saved {
+        background: #166534;
+        border-color: #166534;
+        color: #bbf7d0;
+      }
+      .save-btn.err {
+        background: #7c2d12;
+        border-color: #7c2d12;
+        color: #fecaca;
+      }
+
+      .save-status {
+        font-size: 11.5px;
+        color: #52525b;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .save-status.ok  { color: #86efac; }
+      .save-status.bad { color: #fca5a5; }
+
+      .dir-label {
+        font-size: 11px;
+        color: #3f3f46;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+      .dir-label:hover { color: #71717a; }
+      .dir-label.set   { color: #52525b; }
+
+      /* Syntax highlighting */
+      .kw {
+        color: #c084fc;
+      }
+      .fn {
+        color: #60a5fa;
+      }
+      .str {
+        color: #86efac;
+      }
+      .tag {
+        color: #f9a8d4;
+      }
+      .attr {
+        color: #fbbf24;
+      }
+      .cmt {
+        color: #52525b;
+      }
+      .typ {
+        color: #67e8f9;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Icon Builder</h1>
+        <p>Paste an SVG → get a ready-to-use TSX component</p>
+      </div>
+    </header>
+
+    <!-- LEFT: inputs -->
+    <div class="panel panel-left">
+      <div class="row">
+        <div>
+          <label>Icon Name</label>
+          <input type="text" id="iconName" placeholder="e.g. volume-max" />
+          <div style="font-size:11px;color:#52525b;margin-top:5px;">
+            Component: <span id="componentNamePreview" style="color:#71717a;font-family:monospace;">—</span>
+          </div>
+        </div>
+        <div>
+          <label>Default Size</label>
+          <input
+            type="text"
+            id="size"
+            placeholder="16"
+            value="16"
+            style="max-width: 90px"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label>Paste SVG</label>
+        <textarea
+          id="svgInput"
+          placeholder='<svg xmlns="..." viewBox="0 0 24 24">&#10;  <path d="..." />&#10;</svg>'
+        ></textarea>
+      </div>
+
+      <!-- Analysis -->
+      <div class="analysis" id="analysis">
+        <div class="verdict idle" id="verdict">
+          <span class="verdict-icon">💡</span>
+          <div>
+            <div class="verdict-title">Paste an SVG to analyse</div>
+            <div class="verdict-body">
+              The tool will inspect all fill and stroke values.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div>
+        <div class="section-title" style="margin-bottom: 10px">Preview</div>
+        <div class="preview-box" id="preview">
+          <span class="empty-state">No SVG yet</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: output -->
+    <div class="panel">
+      <div class="section-title">Generated TSX</div>
+      <div class="code-block" id="codeBlock">
+        <pre
+          id="codeOutput"
+        ><span class="cmt">// Paste an SVG on the left to generate the component</span></pre>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy</button>
+      </div>
+      <div class="save-row">
+        <button class="save-btn" id="saveBtn" onclick="saveIcon()">Save to project</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+      <div
+        id="dirLabel"
+        class="dir-label"
+        title="Click to change folder (File System API fallback)"
+        onclick="changeDir()"
+      >Checking for server…</div>
+    </div>
+
+    <script>
+      const svgInput = document.getElementById("svgInput");
+      const iconInput = document.getElementById("iconName");
+      const sizeInput = document.getElementById("size");
+
+      svgInput.addEventListener("input", run);
+      iconInput.addEventListener("input", run);
+      sizeInput.addEventListener("input", run);
+
+      // ─── Icon name → component name ──────────────────────────────────────────
+
+      function iconNameToComponentName(iconName) {
+        if (!iconName.trim()) return "MyIcon";
+        return (
+          iconName
+            .trim()
+            .split("-")
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+            .join("") + "Icon"
+        );
+      }
+
+      // ─── SVG → JSX attribute normalisation ───────────────────────────────────
+
+      function svgToJsx(markup) {
+        const attrMap = {
+          "accent-height": "accentHeight",
+          "alignment-baseline": "alignmentBaseline",
+          "arabic-form": "arabicForm",
+          "baseline-shift": "baselineShift",
+          "cap-height": "capHeight",
+          "clip-path": "clipPath",
+          "clip-rule": "clipRule",
+          "color-interpolation": "colorInterpolation",
+          "color-interpolation-filters": "colorInterpolationFilters",
+          "color-profile": "colorProfile",
+          "color-rendering": "colorRendering",
+          "dominant-baseline": "dominantBaseline",
+          "enable-background": "enableBackground",
+          "fill-opacity": "fillOpacity",
+          "fill-rule": "fillRule",
+          "flood-color": "floodColor",
+          "flood-opacity": "floodOpacity",
+          "font-family": "fontFamily",
+          "font-size": "fontSize",
+          "font-size-adjust": "fontSizeAdjust",
+          "font-stretch": "fontStretch",
+          "font-style": "fontStyle",
+          "font-variant": "fontVariant",
+          "font-weight": "fontWeight",
+          "glyph-name": "glyphName",
+          "glyph-orientation-horizontal": "glyphOrientationHorizontal",
+          "glyph-orientation-vertical": "glyphOrientationVertical",
+          "horiz-adv-x": "horizAdvX",
+          "horiz-origin-x": "horizOriginX",
+          "image-rendering": "imageRendering",
+          "letter-spacing": "letterSpacing",
+          "lighting-color": "lightingColor",
+          "marker-end": "markerEnd",
+          "marker-mid": "markerMid",
+          "marker-start": "markerStart",
+          "overline-position": "overlinePosition",
+          "overline-thickness": "overlineThickness",
+          "paint-order": "paintOrder",
+          "panose-1": "panose1",
+          "pointer-events": "pointerEvents",
+          "rendering-intent": "renderingIntent",
+          "shape-rendering": "shapeRendering",
+          "stop-color": "stopColor",
+          "stop-opacity": "stopOpacity",
+          "strikethrough-position": "strikethroughPosition",
+          "strikethrough-thickness": "strikethroughThickness",
+          "stroke-dasharray": "strokeDasharray",
+          "stroke-dashoffset": "strokeDashoffset",
+          "stroke-linecap": "strokeLinecap",
+          "stroke-linejoin": "strokeLinejoin",
+          "stroke-miterlimit": "strokeMiterlimit",
+          "stroke-opacity": "strokeOpacity",
+          "stroke-width": "strokeWidth",
+          "text-anchor": "textAnchor",
+          "text-decoration": "textDecoration",
+          "text-rendering": "textRendering",
+          "underline-position": "underlinePosition",
+          "underline-thickness": "underlineThickness",
+          "unicode-bidi": "unicodeBidi",
+          "unicode-range": "unicodeRange",
+          "units-per-em": "unitsPerEm",
+          "v-alphabetic": "vAlphabetic",
+          "v-hanging": "vHanging",
+          "v-ideographic": "vIdeographic",
+          "v-mathematical": "vMathematical",
+          "vector-effect": "vectorEffect",
+          "vert-adv-y": "vertAdvY",
+          "vert-origin-x": "vertOriginX",
+          "vert-origin-y": "vertOriginY",
+          "word-spacing": "wordSpacing",
+          "writing-mode": "writingMode",
+          "x-height": "xHeight",
+        };
+
+        let result = markup;
+
+        // Replace each hyphenated attribute (must be preceded by whitespace)
+        for (const [from, to] of Object.entries(attrMap)) {
+          result = result.replace(
+            new RegExp("(\\s)" + from + "=", "g"),
+            "$1" + to + "=",
+          );
+        }
+
+        // xlink:href → href (deprecated in React; use plain href)
+        result = result.replace(/(\s)xlink:href=/g, "$1href=");
+        // Remove xmlns:xlink — not needed when xlink:href is gone
+        result = result.replace(/\s+xmlns:xlink="[^"]*"/g, "");
+        // xml:space / xml:lang / xml:base
+        result = result
+          .replace(/(\s)xml:space=/g, "$1xmlSpace=")
+          .replace(/(\s)xml:lang=/g, "$1xmlLang=")
+          .replace(/(\s)xml:base=/g, "$1xmlBase=");
+
+        return result;
+      }
+
+      // ─── Colour helpers ───────────────────────────────────────────────────────
+
+      const TRANSPARENT = new Set([
+        "none",
+        "transparent",
+        "inherit",
+        "unset",
+        "initial",
+        "currentcolor",
+        "currentColor",
+      ]);
+
+      function normaliseColor(v) {
+        if (!v) return null;
+        const t = v.trim().toLowerCase();
+        if (TRANSPARENT.has(t)) return null;
+        // named colours that are effectively black
+        if (
+          t === "black" ||
+          t === "#000" ||
+          t === "#000000" ||
+          t === "rgb(0,0,0)"
+        )
+          return "#000000";
+        if (t === "white" || t === "#fff" || t === "#ffffff") return "#ffffff";
+        return t;
+      }
+
+      function collectColors(el) {
+        const colors = [];
+        const attrs = [
+          "fill",
+          "stroke",
+          "stop-color",
+          "flood-color",
+          "lighting-color",
+        ];
+        const walk = (node) => {
+          if (node.nodeType !== 1) return;
+          for (const a of attrs) {
+            const v = node.getAttribute(a);
+            const c = normaliseColor(v);
+            if (c) colors.push({ attr: a, value: c, element: node.tagName });
+          }
+          // also check style=""
+          const style = node.getAttribute("style");
+          if (style) {
+            for (const a of attrs) {
+              const m = style.match(new RegExp(a + "\\s*:\\s*([^;]+)", "i"));
+              if (m) {
+                const c = normaliseColor(m[1].trim());
+                if (c)
+                  colors.push({
+                    attr: `style:${a}`,
+                    value: c,
+                    element: node.tagName,
+                  });
+              }
+            }
+          }
+          for (const child of node.children) walk(child);
+        };
+        walk(el);
+        return colors;
+      }
+
+      // ─── currentColor decision ────────────────────────────────────────────────
+
+      function analyse(colors) {
+        if (!colors.length) {
+          return {
+            verdict: "none",
+            title: "No colour attributes found",
+            body: 'All elements use fill="none" / no fill. Safe to emit as-is.',
+            useCurrentColor: false,
+          };
+        }
+
+        const unique = [...new Set(colors.map((c) => c.value))];
+
+        // All colours are the same single hue → ideal for currentColor
+        if (unique.length === 1) {
+          const v = unique[0];
+          // If it's pure black the icon was probably designed as a "monochrome" stroke icon
+          return {
+            verdict: "yes",
+            title: "Use currentColor",
+            body: `All coloured attributes share the same value (${v}). Replace it with currentColor so the icon inherits its parent's text colour via className.`,
+            useCurrentColor: true,
+            dominant: v,
+          };
+        }
+
+        // Multiple colours but they are all black/near-black variants → still currentColor
+        const allDark = unique.every(
+          (v) => /^#0{3,6}$/.test(v) || v === "black",
+        );
+        if (allDark) {
+          return {
+            verdict: "yes",
+            title: "Use currentColor",
+            body: `All colours are black variants (${unique.join(", ")}). Replace them all with currentColor.`,
+            useCurrentColor: true,
+            dominant: unique[0],
+          };
+        }
+
+        // Mix of colours (e.g. category icons with intentional palette)
+        return {
+          verdict: "no",
+          title: "Keep hardcoded colours",
+          body: `${unique.length} distinct colours found: ${unique.map((v) => `<span class="color-chip" style="background:#27272a"><span class="color-swatch" style="background:${v}"></span>${v}</span>`).join(" ")}. These look intentional — do not replace with currentColor.`,
+          useCurrentColor: false,
+          colors: unique,
+        };
+      }
+
+      // ─── SVG transform ────────────────────────────────────────────────────────
+
+      function transformSvg(svgEl, useCurrentColor, dominantColor) {
+        const clone = svgEl.cloneNode(true);
+
+        // Remove attributes handled by the component wrapper
+        for (const a of ["width", "height", "class", "style"])
+          clone.removeAttribute(a);
+
+        // Replace width/height with {size} placeholders — done at template level
+        // Ensure no xmlns:xlink etc. clutter (keep xmlns)
+
+        if (useCurrentColor && dominantColor) {
+          replaceColorInEl(clone, dominantColor, "currentColor");
+        }
+
+        return svgToJsx(clone.outerHTML);
+      }
+
+      function replaceColorInEl(el, from, to) {
+        const attrs = [
+          "fill",
+          "stroke",
+          "stop-color",
+          "flood-color",
+          "lighting-color",
+        ];
+        const walk = (node) => {
+          if (node.nodeType !== 1) return;
+          for (const a of attrs) {
+            const v = node.getAttribute(a);
+            if (v && normaliseColor(v) === normaliseColor(from))
+              node.setAttribute(a, to);
+          }
+          for (const child of node.children) walk(child);
+        };
+        walk(el);
+      }
+
+      // ─── TSX code gen ─────────────────────────────────────────────────────────
+
+      function buildTsx(name, defaultSize, svgMarkup, viewBox) {
+        if (!name) name = "MyIcon";
+        const propName = name + "Props";
+        // Indent svg markup by 6 spaces
+        const indented = svgMarkup
+          .replace(/^<svg/, "<svg\n      width={size}\n      height={size}")
+          .split("\n")
+          .map((l, i) => (i === 0 ? "      " + l.trim() : "      " + l.trim()))
+          .join("\n");
+
+        return [
+          `import React from 'react';`,
+          ``,
+          `interface ${propName} extends React.SVGProps<SVGSVGElement> {`,
+          `  size?: number;`,
+          `}`,
+          ``,
+          `export const ${name} = ({ size = ${defaultSize || 16}, ...props }: ${propName}) => {`,
+          `  return (`,
+          `    ${indented.trim().replace("<svg", "<svg\n      {...props}")}`,
+          `  );`,
+          `};`,
+          ,
+        ].join("\n");
+      }
+
+      // ─── Syntax highlight (very minimal) ─────────────────────────────────────
+
+      function highlight(code) {
+        return (
+          code
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            // strings in JSX / TS
+            .replace(
+              /('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g,
+              '<span class="str">$1</span>',
+            )
+            // JSX tags
+            .replace(
+              /(&lt;\/?[A-Za-z][A-Za-z0-9.]*)/g,
+              '<span class="tag">$1</span>',
+            )
+            // TS keywords
+            .replace(
+              /\b(import|from|export|const|interface|extends|return|type)\b/g,
+              '<span class="kw">$1</span>',
+            )
+            // numbers
+            .replace(/\b(\d+)\b/g, '<span class="str">$1</span>')
+        );
+      }
+
+      // ─── Main runner ──────────────────────────────────────────────────────────
+
+      let _lastCode = "";
+
+      function run() {
+        const raw = svgInput.value.trim();
+        const name = iconNameToComponentName(iconInput.value);
+        const size = sizeInput.value.trim() || "16";
+
+        document.getElementById("componentNamePreview").textContent = name;
+
+        if (!raw) {
+          resetUI();
+          return;
+        }
+
+        // Parse SVG
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(raw, "image/svg+xml");
+        const parseErr = doc.querySelector("parsererror");
+        if (parseErr) {
+          document.getElementById("verdict").className = "verdict no";
+          document.getElementById("verdict").innerHTML = `
+        <span class="verdict-icon">✕</span>
+        <div><div class="verdict-title">Invalid SVG</div>
+        <div class="verdict-body">${parseErr.textContent.slice(0, 120)}</div></div>`;
+          return;
+        }
+
+        const svgEl = doc.querySelector("svg");
+        if (!svgEl) return;
+
+        const colors = collectColors(svgEl);
+        const result = analyse(colors);
+
+        // --- Verdict ---
+        const verdictEl = document.getElementById("verdict");
+        verdictEl.className = `verdict ${result.verdict === "yes" ? "yes" : result.verdict === "no" ? "no" : "idle"}`;
+        verdictEl.innerHTML = `
+      <span class="verdict-icon">${result.verdict === "yes" ? "✓" : result.verdict === "no" ? "✕" : "💡"}</span>
+      <div>
+        <div class="verdict-title">${result.title}</div>
+        <div class="verdict-body">${result.body}</div>
+      </div>`;
+
+        // --- Analysis block (colour chips) ---
+        const analysisEl = document.getElementById("analysis");
+        // remove old chips
+        const old = analysisEl.querySelector(".colors-grid");
+        if (old) old.remove();
+
+        if (colors.length) {
+          const grid = document.createElement("div");
+          grid.className = "colors-grid";
+          const unique = [...new Map(colors.map((c) => [c.value, c])).values()];
+          unique.forEach(({ value, attr }) => {
+            const chip = document.createElement("div");
+            chip.className = "color-chip";
+            const swatch = document.createElement("span");
+            swatch.className = "color-swatch";
+            swatch.style.background = value;
+            chip.appendChild(swatch);
+            chip.appendChild(document.createTextNode(`${value} (${attr})`));
+            grid.appendChild(chip);
+          });
+          analysisEl.appendChild(grid);
+        }
+
+        // --- Transform SVG ---
+        const transformed = transformSvg(
+          svgEl,
+          result.useCurrentColor,
+          result.dominant || (result.colors && result.colors[0]),
+        );
+
+        // --- Preview ---
+        const previewEl = document.getElementById("preview");
+        previewEl.innerHTML = "";
+
+        const backgrounds = [
+          { bg: "#18181b", color: "#fafafa", label: "Dark" },
+          { bg: "#fafafa", color: "#18181b", label: "Light" },
+          { bg: "#6366f1", color: "#ffffff", label: "Primary" },
+          { bg: "#18181b", color: "#71717a", label: "Muted" },
+        ];
+
+        backgrounds.forEach(({ bg, color, label }) => {
+          const slot = document.createElement("div");
+          slot.className = "preview-slot";
+          const wrap = document.createElement("div");
+          wrap.className = "icon-wrap";
+          wrap.style.background = bg;
+          wrap.style.color = color;
+          wrap.innerHTML = transformed;
+          const lbl = document.createElement("span");
+          lbl.textContent = label;
+          slot.appendChild(wrap);
+          slot.appendChild(lbl);
+          previewEl.appendChild(slot);
+        });
+
+        // --- Code gen ---
+        const tsx = buildTsx(
+          name,
+          size,
+          transformed,
+          svgEl.getAttribute("viewBox"),
+        );
+        _lastCode = tsx;
+        document.getElementById("codeOutput").innerHTML = highlight(tsx);
+      }
+
+      function resetUI() {
+        document.getElementById("componentNamePreview").textContent = iconInput.value
+          ? iconNameToComponentName(iconInput.value)
+          : "—";
+        document.getElementById("verdict").className = "verdict idle";
+        document.getElementById("verdict").innerHTML = `
+      <span class="verdict-icon">💡</span>
+      <div>
+        <div class="verdict-title">Paste an SVG to analyse</div>
+        <div class="verdict-body">The tool will inspect all fill and stroke values.</div>
+      </div>`;
+        document.getElementById("preview").innerHTML =
+          '<span class="empty-state">No SVG yet</span>';
+        document.getElementById("codeOutput").innerHTML =
+          '<span class="cmt">// Paste an SVG on the left to generate the component</span>';
+        const grid = document
+          .getElementById("analysis")
+          .querySelector(".colors-grid");
+        if (grid) grid.remove();
+        _lastCode = "";
+      }
+
+      function copyCode() {
+        if (!_lastCode) return;
+        navigator.clipboard.writeText(_lastCode).then(() => {
+          const btn = document.getElementById("copyBtn");
+          btn.textContent = "Copied!";
+          btn.className = "copy-btn copied";
+          setTimeout(() => {
+            btn.textContent = "Copy";
+            btn.className = "copy-btn";
+          }, 1800);
+        });
+      }
+
+      // ─── Save ────────────────────────────────────────────────────────────────
+
+      const SERVER = "http://127.0.0.1:7891";
+      let _dirHandle   = null;
+      let _serverAlive = null; // null = unknown, true/false = cached
+
+      function setSaveStatus(type, msg) {
+        const el = document.getElementById("saveStatus");
+        el.className = "save-status" + (type === "ok" ? " ok" : type === "bad" ? " bad" : "");
+        el.textContent = msg;
+      }
+
+      function updateDirLabel(text, active) {
+        const el = document.getElementById("dirLabel");
+        el.className = "dir-label" + (active ? " set" : "");
+        el.textContent = text;
+      }
+
+      async function changeDir() {
+        if (!window.showDirectoryPicker) return;
+        try {
+          _dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+          updateDirLabel("📁 " + _dirHandle.name + "  ·  click to change", true);
+          setSaveStatus("", "");
+        } catch (e) {
+          if (e.name !== "AbortError") setSaveStatus("bad", e.message);
+        }
+      }
+
+      // Probe whether the local server is reachable (cached per session)
+      async function probeServer() {
+        if (_serverAlive !== null) return _serverAlive;
+        try {
+          const ctrl = new AbortController();
+          setTimeout(() => ctrl.abort(), 1500);
+          const r = await fetch(SERVER + "/ping", { signal: ctrl.signal });
+          const d = await r.json();
+          if (d.ok) {
+            _serverAlive = true;
+            updateDirLabel("Server running  ·  " + d.dir, true);
+          }
+        } catch {}
+        if (!_serverAlive) {
+          _serverAlive = false;
+          const fsAvail = !!window.showDirectoryPicker;
+          updateDirLabel(
+            fsAvail
+              ? "Server offline — using folder picker (Chrome/Edge)"
+              : "Server offline — run:  node icon-builder-server.js",
+            false
+          );
+        }
+        return _serverAlive;
+      }
+
+      // Save via local server (all browsers)
+      async function saveViaServer(iconName, componentName) {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(SERVER + "/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ iconName, componentName, code: _lastCode }),
+          signal: ctrl.signal,
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+      }
+
+      // Save via File System Access API (Chrome/Edge fallback)
+      async function saveViaFsApi(iconName, componentName) {
+        if (!_dirHandle) {
+          _dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+          updateDirLabel("📁 " + _dirHandle.name + "  ·  click to change", true);
+        }
+        const fileHandle = await _dirHandle.getFileHandle(iconName + ".tsx", { create: true });
+        const fw = await fileHandle.createWritable();
+        await fw.write(_lastCode);
+        await fw.close();
+
+        const indexHandle = await _dirHandle.getFileHandle("index.ts", { create: true });
+        const existing    = await (await indexHandle.getFile()).text();
+        const exportLine  = `export { ${componentName} } from './${iconName}';`;
+        if (!existing.includes(exportLine)) {
+          const sep = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
+          const iw = await indexHandle.createWritable();
+          await iw.write(existing + sep + exportLine + "\n");
+          await iw.close();
+        }
+      }
+
+      async function saveIcon() {
+        if (!_lastCode) { setSaveStatus("bad", "Generate a component first"); return; }
+        const iconName = iconInput.value.trim();
+        if (!iconName)  { setSaveStatus("bad", "Enter an icon name first"); return; }
+
+        const btn           = document.getElementById("saveBtn");
+        const componentName = iconNameToComponentName(iconName);
+
+        btn.disabled  = true;
+        btn.textContent = "Saving…";
+        setSaveStatus("", "");
+
+        try {
+          // ── 1. Local server (works in every browser) ──────────────────────
+          const alive = await probeServer();
+          if (alive) {
+            await saveViaServer(iconName, componentName);
+          }
+          // ── 2. File System API fallback (Chrome / Edge only) ──────────────
+          else if (window.showDirectoryPicker) {
+            await saveViaFsApi(iconName, componentName);
+          }
+          // ── 3. Nothing available ──────────────────────────────────────────
+          else {
+            throw new Error(
+              "Server offline. Run in terminal:  node icon-builder-server.js"
+            );
+          }
+
+          btn.className   = "save-btn saved";
+          btn.textContent = "Saved!";
+          setSaveStatus("ok", iconName + ".tsx  ·  index.ts updated");
+          setTimeout(() => {
+            btn.className   = "save-btn";
+            btn.textContent = "Save to project";
+          }, 2200);
+
+        } catch (e) {
+          if (e.name === "AbortError") {
+            setSaveStatus("", "");
+          } else {
+            _serverAlive = null; // re-probe next time
+            if (e.message.includes("NetworkError") || e.message.includes("Failed to fetch"))
+              setSaveStatus("bad", "Server offline — run:  node icon-builder-server.js");
+            else
+              setSaveStatus("bad", e.message);
+            btn.className   = "save-btn err";
+            btn.textContent = "Error";
+            setTimeout(() => {
+              btn.className   = "save-btn";
+              btn.textContent = "Save to project";
+            }, 3000);
+          }
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      // Probe on load so the label shows the server path immediately
+      probeServer();
+    </script>
+  </body>
+</html>
